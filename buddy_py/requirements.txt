@@ -1,0 +1,7 @@
+faster_whisper==1.2.1
+langchain_core==1.2.27
+langchain_groq==1.1.2
+langgraph==1.1.6
+numpy==2.4.4
+python-dotenv==1.2.2
+silero_vad==6.2.1

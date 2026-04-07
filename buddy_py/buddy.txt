@@ -1,0 +1,54 @@
+The Informer (Memory Hub): This is your most complex node. Since it manages LTM, STM, RAG, and Internet, it’s best treated as a Sub-Graph. This keeps your main graph clean while allowing the Informer to run its own internal logic to determine which memory source is relevant.
+
+These are AI agents
+
+1. Decider(Leader) : decides sequence of agents work in parallel or series to get the user desire output
+
+2. Planner : Breaking down the task in the sequence of series and parallel with appropriate agent and its prompt
+
+3. Thinker : It thinks and solve complex task or long and lengthy task
+
+4. Informer : All the stored memory and internet knowledge is available here include , user personal data, other documents like pdf, photo etc. , recent chat memory. It have other four agent working under are Long Term Memory, Short Term Memory, RAG, Internet
+  
+5. Toolbox : It have all the external API, tool, software access
+
+2. Node-by-Node Integration Strategy
+To build a high-performance system, you shouldn't use the same model for every node. You should "right-size" the model to the task.
+
+Agent 1: Decider (The "Traffic Controller")
+Recommended Model: llama-3.3-70b-versatile
+
+Why: The Decider needs to understand the overall state and choose the next node. It requires high instruction-following capability but needs to be faster than the Thinker.
+
+Usage: Set temperature=0 to ensure deterministic routing logic.
+
+Agent 2: Planner (The "Architect")
+Recommended Model: meta-llama/llama-4-scout-17b
+
+Why: Llama 4 Scout is purpose-built for agentic planning. It excels at breaking down a high-level prompt into a JSON-formatted sequence of parallel or serial steps.
+
+Usage: Use Structured Output (JSON Mode) to ensure the graph can parse the plan.
+
+Agent 3: Thinker (The "Brain")
+Recommended Model: qwen/qwen3-32b or openai/gpt-oss-120b
+
+Why: These models support "Reasoning Tokens." They will literally "talk to themselves" in a hidden scratchpad before giving you the answer. This is perfect for the lengthy, complex tasks you mentioned.
+
+Usage: Enable include_reasoning=True so the system can store the Thinker's internal logic for the Validator to review.
+
+Agent 4: Informer (The "Librarian")
+Recommended Model: llama-3.1-8b-instant
+
+Why: The Informer does a lot of small, fast tasks (summarizing RAG results, checking chat history). You don't want to wait 5 seconds for a summary. This model will do it in milliseconds.
+
+Usage: Use this to process the data from your four sub-agents (LTM, STM, RAG, Internet).
+
+Agent 5: Toolbox (The "Executor")
+Recommended Model: llama3-groq-70b-tool-use
+
+Why: This model has been specifically trained to format API calls without errors. It has the highest accuracy on the Berkeley Function Calling Leaderboard.
+
+Usage: Bind your external tools directly to this model instance.
+Informer
+
+1. RAG : It have our 
