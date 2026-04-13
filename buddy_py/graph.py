@@ -13,7 +13,7 @@ graph.add_edge("llm",END)
 
 
 
-buddy = graph.compile()
+compiled = graph.compile()
 
 
 

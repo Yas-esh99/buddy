@@ -8,10 +8,10 @@
 #include "ring_buf.h"
 #include "freertos/event_groups.h"
 
-#define WIFI_SSID "M21s"
-#define WIFI_PASS "9924760032Yashesh@"
+#define WIFI_SSID "M01s"
+#define WIFI_PASS "9924760032"
 
-#define DEST_IP "10.159.30.32"
+#define DEST_IP "192.168.82.32"
 #define DEST_PORT 5004
 
 #define SAMPLE_RATE 16000

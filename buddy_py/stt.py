@@ -3,6 +3,7 @@ import numpy as np
 import time
 from faster_whisper import WhisperModel
 from silero_vad import VADIterator, load_silero_vad
+from buddy import buddy
 
 # --- Configuration ---
 UDP_IP = "0.0.0.0"
@@ -73,7 +74,11 @@ def main():
                             if text:
                                 # Printing latency for debugging
                                 print(f"🗣️  {text} [Inference: {latency:.2f}ms]")
-                                
+                                if text.lower().startswith("buddy"):
+
+                                    clean_query = text[5:].strip()
+
+                                    buddy.add_task("main", clean_query)
                                 
                             
                             is_collecting = False
