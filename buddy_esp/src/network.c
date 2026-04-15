@@ -1,17 +1,17 @@
 #include "esp_log.h"
 #include "esp_random.h"
 #include "esp_wifi.h"
+#include "freertos/event_groups.h"
 #include "freertos/ringbuf.h"
 #include "inttypes.h"
 #include "lwip/sockets.h"
 #include "nvs_flash.h"
 #include "ring_buf.h"
-#include "freertos/event_groups.h"
 
 #define WIFI_SSID "M01s"
 #define WIFI_PASS "9924760032"
 
-#define DEST_IP "192.168.82.32"
+#define DEST_IP "255.255.255.255"
 #define DEST_PORT 5004
 
 #define SAMPLE_RATE 16000
@@ -63,6 +63,10 @@ void wifi_task(void *pv) {
     vTaskDelete(NULL);
   }
 
+  int broadcastEnable = 1;
+  setsockopt(sock, SOL_SOCKET, SO_BROADCAST, &broadcastEnable,
+             sizeof(broadcastEnable));
+
   ESP_LOGI(TAG, "Stream Starting...");
 
   while (1) {
@@ -105,13 +109,13 @@ void wifi_init() {
 
   wifi_event_group = xEventGroupCreate();
 
-
   ESP_ERROR_CHECK(esp_netif_init());
   ESP_ERROR_CHECK(esp_event_loop_create_default());
 
-  
-  ESP_ERROR_CHECK(esp_event_handler_register(WIFI_EVENT,ESP_EVENT_ANY_ID,&event_handler,NULL));
-  ESP_ERROR_CHECK(esp_event_handler_register(IP_EVENT,IP_EVENT_STA_GOT_IP,&event_handler,NULL));
+  ESP_ERROR_CHECK(esp_event_handler_register(WIFI_EVENT, ESP_EVENT_ANY_ID,
+                                             &event_handler, NULL));
+  ESP_ERROR_CHECK(esp_event_handler_register(IP_EVENT, IP_EVENT_STA_GOT_IP,
+                                             &event_handler, NULL));
 
   esp_netif_create_default_wifi_sta();
 
@@ -125,7 +129,6 @@ void wifi_init() {
   esp_wifi_set_config(WIFI_IF_STA, &wifi_cfg);
 
   esp_wifi_start();
-  
 
   esp_wifi_set_ps(WIFI_PS_NONE);
 }

@@ -23,7 +23,7 @@ void i2s_init(){
     .gpio_cfg = {
       .mclk = I2S_GPIO_UNUSED,
       .bclk = GPIO_NUM_14,
-      .ws = GPIO_NUM_15,
+      .ws = GPIO_NUM_25,
       .dout = I2S_GPIO_UNUSED,
       .din = GPIO_NUM_32,
       .invert_flags = {
