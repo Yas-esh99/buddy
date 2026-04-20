@@ -1,0 +1,10 @@
+[
+    {
+        "id": "04de1956-78cc-4d98-8716-beca1420dc87",
+        "text": "Drink Water",
+        "trigger_time": "2026-04-20T12:00:42.870204",
+        "repeat": "none",
+        "priority": 1,
+        "status": "completed"
+    }
+]

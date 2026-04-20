@@ -12,15 +12,18 @@ RTP_HEADER_SIZE = 12
 SAMPLE_RATE = 16000
 VAD_CHUNK_SIZE = 512  # Silero requires exactly 512 samples for 16kHz
 
+
 def main():
     print("🚀 Loading Silero VAD (ONNX) & Faster-Whisper...")
     # Load ONNX version to avoid the Python 3.13 / Torchaudio crash
-    model_vad = load_silero_vad(onnx=True) 
+    model_vad = load_silero_vad(onnx=True)
     vad_iterator = VADIterator(model_vad, threshold=0.5, min_silence_duration_ms=700)
 
     # i5-9400 optimized Whisper
-    stt_model = WhisperModel("tiny.en", device="cpu", compute_type="int8", cpu_threads=6)
-    
+    stt_model = WhisperModel(
+        "tiny.en", device="cpu", compute_type="int8", cpu_threads=6
+    )
+
     sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     sock.bind((UDP_IP, UDP_PORT))
 
@@ -33,12 +36,15 @@ def main():
     while True:
         try:
             data, addr = sock.recvfrom(4096)
-            if len(data) <= RTP_HEADER_SIZE: continue
+            if len(data) <= RTP_HEADER_SIZE:
+                continue
 
             # 1. Convert incoming UDP packet to float32
             pcm_payload = data[RTP_HEADER_SIZE:]
-            new_samples = np.frombuffer(pcm_payload, dtype='>i2').astype(np.float32) / 32768.0
-            
+            new_samples = (
+                np.frombuffer(pcm_payload, dtype=">i2").astype(np.float32) / 32768.0
+            )
+
             # 2. Add to our VAD buffer
             accumulated_samples = np.append(accumulated_samples, new_samples)
 
@@ -55,36 +61,48 @@ def main():
                         is_collecting = True
                         sentence_audio = [vad_block]
                         print("🎤 Speech detected...", end="\r")
-                    
+
                     if "end" in speech_dict:
                         if is_collecting and sentence_audio:
                             print("\n⚙️  Processing sentence...")
                             full_audio = np.concatenate(sentence_audio)
-                            
+
                             # --- Latency Debugging Start ---
                             start_time = time.perf_counter()
-                            
+
                             segments, _ = stt_model.transcribe(full_audio, beam_size=1)
                             text = "".join([s.text for s in segments]).strip()
-                            
+
                             end_time = time.perf_counter()
-                            latency = (end_time - start_time) * 1000 # Convert to ms
+                            latency = (end_time - start_time) * 1000  # Convert to ms
                             # --- Latency Debugging End ---
-                            
+
                             if text:
                                 # Printing latency for debugging
                                 print(f"🗣️  {text} [Inference: {latency:.2f}ms]")
                                 lower_text = text.lower()
 
-                                if "buddy" in lower_text:
-                                    clean_query = lower_text.split("buddy", 1)[1].strip()
-
-                                    buddy.add_task("main", clean_query)
+                                import re
+                                lower_text = text.lower()
                                 
-                            
+                                # Use regex to find 'buddy' and capture everything after it
+                                match = re.search(r"\bbuddy\b\s*(.*)", lower_text)
+                                
+                                if match:
+                                    clean_query = match.group(1).strip()
+                                    
+                                    # Remove leading punctuation like commas or dots
+                                    clean_query = re.sub(r"^[.,\s!?]+", "", clean_query)
+                                    
+                                    if clean_query:
+                                        print(f"🎯 Query: {clean_query}")
+                                        buddy.add_task("main", clean_query)
+                                    else:
+                                        print("Empty query after 'buddy', ignoring.")
+
                             is_collecting = False
                             sentence_audio = []
-                
+
                 # If we are in the middle of a sentence, keep the audio
                 if is_collecting:
                     sentence_audio.append(vad_block)
@@ -92,6 +110,6 @@ def main():
         except Exception as e:
             print(f"⚠️ Error: {e}")
 
+
 if __name__ == "__main__":
     main()
-    
